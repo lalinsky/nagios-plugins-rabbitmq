@@ -141,6 +141,9 @@ check($p, "Memory", $bodyref->{'mem_used'}, $bodyref->{'mem_limit'}, $warning[0]
 check($p, "Process", $bodyref->{'proc_used'}, $bodyref->{'proc_total'}, $warning[1], $critical[1]);
 check($p, "FD", $bodyref->{'fd_used'}, $bodyref->{'fd_total'}, $warning[2], $critical[2]);
 
+check_alarm($p, "Disk free alarm", $bodyref->{'disk_free_alarm'});
+check_alarm($p, "Memory alarm", $bodyref->{'mem_alarm'});
+
 ($code, $message) = $p->check_messages(join_all=>', ');
 $p->nagios_exit( return_code=>$code, message=>$message);
 
@@ -157,6 +160,15 @@ sub check {
     my $code = $p->check_threshold(check => $value, warning => $warning, critical => $critical);
     $p->add_message($code, sprintf("$label ".$STATUS_TEXT{$code}." (%.2f%%)", $value)) ;
     $p->add_perfdata(label=>$label, value => $value, uom=>"%", warning=>$warning, critical=>$critical);
+}
+
+sub check_alarm {
+    my $p = shift;
+    my $label = shift;
+    my $value = shift;
+
+    my $code = $value ? CRITICAL : OK;
+    $p->add_message($code, sprintf("$label ".$STATUS_TEXT{$code})) ;
 }
 
 sub percent {
